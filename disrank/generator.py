@@ -70,15 +70,23 @@ class Generator:
         # Editing stuff here
 
         # ======== Fonts to use =============
-        font_normal = ImageFont.truetype(self.font1, 36)
+        font_user = ImageFont.truetype(self.font1, 45)
+        font_slash = ImageFont.truetype(self.font1, 30)
+        font_discr = ImageFont.truetype(self.font1, 25)
+        font_rank = ImageFont.truetype(self.font1, 30)
         font_small = ImageFont.truetype(self.font1, 20)
+        font_numbers = ImageFont.truetype(self.font1, 50)
+        font_hashtag = ImageFont.truetype(self.font1, 55)
         font_signa = ImageFont.truetype(self.font2, 25)
 
         # ======== Colors ========================
         colorr = ImageColor.getcolor(text_color, "RGB")
+        DISC = (103, 107, 110)
+        BLANC = (255, 255, 255)
         WHITE = (189, 195, 199)
         YELLOW = (255, 234, 167)
 
+        # ======== Username and xp ===============
         def get_str(xp):
             if xp < 1000:
                 return str(xp)
@@ -87,32 +95,84 @@ class Generator:
             if xp > 1000000:
                 return str(round(xp / 1000000, 1)) + "M"
 
-        draw = ImageDraw.Draw(card)
-        draw.text((245, 22), user_name, colorr, font=font_normal)
-        draw.text((245, 98), f"Rank #{user_position}", colorr, font=font_small)
-        draw.text((245, 123), f"Level {level}", colorr, font=font_small)
-        draw.text(
-            (245, 150),
-            f"Exp {get_str(user_xp)}/{get_str(next_xp)}",
-            colorr,
-            font=font_small,
-        )
+        discriminator = user_name[-5:]
+        lengt = len(user_name)
+        length_username = int(lengt) - 5
+        usernam = user_name[0:length_username]
+        wid_user = font_user.getsize(usernam)[0]
+        wid_discr = font_discr.getsize(discriminator)[0]
 
+
+        str_user_xp = get_str(user_xp)
+        str_next_xp = get_str(next_xp) + ' XP'
+        wid_user_xp = font_discr.getsize(str_user_xp)[0]
+        wid_next_xp = font_discr.getsize(str_next_xp)[0]
+        wid_slash = font_slash.getsize('/')[0]
+        x_next_xp = 830 - wid_next_xp
+        x_slash = x_next_xp - 13 
+        x_user_xp = x_slash - 5 - wid_user_xp
+        space_xps = wid_user_xp + wid_next_xp + wid_slash + 13 + 5 
+        space_xp_username = 830 - space_xps - wid_discr - 270
+
+        size_font_username = 45
+        while font_user.getsize(usernam)[0] > space_xp_username : 
+            size_font_username = size_font_username - 1
+            font_user = ImageFont.truetype(self.font1, size_font_username)
+            
+        wid_user = font_user.getsize(usernam)[0]
+        x_dis = 278 + wid_user
+        draw = ImageDraw.Draw(card)
+        width_ok, height_ok = draw.textsize(usernam, font=font_user)
+        y_user = 155 - height_ok
+        width_ok, height_ok = draw.textsize(discriminator, font=font_discr)
+        y_discr = 155 - height_ok
+        width_ok, height_ok = draw.textsize(str_next_xp, font=font_discr)
+        y_xp = 155 - height_ok
+ 
+        draw.text((270, y_user), usernam, BLANC, font=font_user)
+        draw.text((x_dis, y_discr), discriminator, DISC, font=font_discr)
+        draw.text((x_next_xp, y_xp), f"{str_next_xp}", DISC, font=font_discr)
+        draw.text((x_slash, 122), "/", BLANC, font=font_slash)
+        draw.text((x_user_xp, y_xp), f"{str_user_xp}", BLANC, font=font_discr)
+
+        # ======== Level and rank ===============
+        str_level = str(level)
+        wid_leveln = font_numbers.getsize(str_level)[0]
+        x_leveln = 830 - wid_leveln
+        wid_level = font_rank.getsize('Level')[0]
+        x_level = x_leveln - 10 - wid_level
+
+        posit = str(user_position)
+        wid_rankn = font_numbers.getsize(posit)[0]
+        x_rankn = x_level - 20 - wid_rankn
+        wid_hashtag = font_hashtag.getsize('#')[0]
+        x_hashtag = x_rankn - wid_hashtag
+        wid_rank = font_rank.getsize('Rank')[0]
+        x_rank = x_hashtag - 10 - wid_rank
+
+        draw.text((x_leveln, 20), f"{level}", colorr, font=font_numbers)
+        draw.text((x_level, 40), "Level", colorr, font=font_rank)
+        draw.text((x_rankn, 20), f"{posit}", BLANC, font=font_numbers)
+        draw.text((x_hashtag, 15), "#", BLANC, font=font_hashtag)
+        draw.text((x_rank, 40), f"Rank", BLANC, font=font_rank)
+        
+
+        # ======== Progress Bar ==================
         # Adding another blank layer for the progress bar
         # Because drawing on card dont make their background transparent
         blank = Image.new("RGBA", card.size, (255, 255, 255, 0))
         blank_draw = ImageDraw.Draw(blank)
         blank_draw.rectangle(
-            (245, 185, 750, 205), fill=(255, 255, 255, 0), outline=colorr
+            (270, 162, 830, 193), fill=(255, 255, 255, 0), outline=colorr
         )
 
         xpneed = next_xp - current_xp
         xphave = user_xp - current_xp
 
         current_percentage = (xphave / xpneed) * 100
-        length_of_bar = (current_percentage * 4.9) + 248
+        length_of_bar = (current_percentage * 4.9) + 273
 
-        blank_draw.rectangle((248, 188, length_of_bar, 202), fill=colorr)
+        blank_draw.rectangle((273, 165, length_of_bar, 190), fill=colorr)
         blank_draw.ellipse((20, 20, 218, 218), fill=(255, 255, 255, 0), outline=colorr)
 
         profile_pic_holder.paste(profile, (29, 29, 209, 209))
